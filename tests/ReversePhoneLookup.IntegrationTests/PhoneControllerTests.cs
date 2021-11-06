@@ -8,7 +8,7 @@ using Xunit;
 namespace ReversePhoneLookup.IntegrationTests
 {
     /// <summary>
-    /// TODO: Add the functionality of inserting records to datase.
+    /// DONE: Add the functionality of inserting records to datase.
     /// TODO: Expose Endpoint
     /// TODO: Write Unit Tests
     /// TODO: Write Integration tests

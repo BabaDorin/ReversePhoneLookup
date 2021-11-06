@@ -15,9 +15,9 @@ using ReversePhoneLookup.Abstract.Services;
 using ReversePhoneLookup.Models;
 using ReversePhoneLookup.Models.Repositories;
 using ReversePhoneLookup.Models.Services;
-using ReversePhoneLookup.Models;
 using ReversePhoneLookup.Models.Responses;
 using ReversePhoneLookup.Web.Filters;
+using ReversePhoneLookup.Api.Services;
 
 namespace ReversePhoneLookup.Web
 {
@@ -41,6 +41,7 @@ namespace ReversePhoneLookup.Web
 
             services.AddTransient<IPhoneRepository, PhoneRepository>();
             services.AddTransient<IPhoneService, PhoneService>();
+            services.AddTransient<IOperatorService, OperatorService>();
             services.AddTransient<ILookupService, LookupService>();
 
             services.AddControllers(options =>

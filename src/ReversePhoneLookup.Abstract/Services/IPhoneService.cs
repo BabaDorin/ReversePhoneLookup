@@ -8,8 +8,6 @@ namespace ReversePhoneLookup.Abstract.Services
     {
         Task AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken);
 
-        Task AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken);
-
         string TryFormatPhoneNumber(string phone);
         
         bool IsPhoneNumber(string phone);

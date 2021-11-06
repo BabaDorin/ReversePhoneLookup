@@ -18,28 +18,6 @@ namespace ReversePhoneLookup.Models.Services
         {
             this.repository = repository;
         }
-        
-        public async Task AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken)
-        {
-            if((await repository
-                .GetOperatorAsync(
-                @operator.Mcc, 
-                @operator.Mnc, 
-                @operator.Name, 
-                cancellationToken)) != null)
-            {
-                throw new ApiException(StatusCode.ValidationError);
-            }
-
-            var operatorModel = new Operator()
-            {
-                Mcc = @operator.Mcc,
-                Mnc = @operator.Mnc,
-                Name = @operator.Name,
-            };
-
-            await repository.AddOperatorAsync(operatorModel, cancellationToken);
-        }
 
         public async Task AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken)
         {
