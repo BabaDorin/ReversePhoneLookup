@@ -1,10 +1,55 @@
-﻿using System.Linq;
+﻿using ReversePhoneLookup.Abstract.Repositories;
 using ReversePhoneLookup.Abstract.Services;
+using ReversePhoneLookup.Models.Exceptions;
+using ReversePhoneLookup.Models.Models.Entities;
+using ReversePhoneLookup.Models.ViewModels;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ReversePhoneLookup.Api.Services
+namespace ReversePhoneLookup.Models.Services
 {
     public class PhoneService : IPhoneService
     {
+        private readonly IPhoneRepository repository;
+
+        public PhoneService(IPhoneRepository repository)
+        {
+            this.repository = repository;
+        }
+        
+        public async Task AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken)
+        {
+            var operatorModel = new Operator()
+            {
+                Mcc = @operator.Mcc,
+                Mnc = @operator.Mnc,
+                Name = @operator.Name,
+            };
+
+            await repository.AddOperatorAsync(operatorModel, cancellationToken);
+        }
+
+        public async Task AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken)
+        {
+            var phoneModel = new Phone()
+            {
+                Value = ValidatePhoneNumber(phone.Value),
+                OperatorId = phone.OperatorId,
+            };
+
+            if (phone.Contacts.Any())
+            {
+                foreach(var contact in phone.Contacts)
+                {
+                    var contactModel = await GetContactModel(contact, cancellationToken);
+                    phoneModel.Contacts.Add(contactModel);
+                }
+            }
+
+            await repository.AddPhoneAsync(phoneModel, cancellationToken);
+        }
+        
         public string TryFormatPhoneNumber(string phone)
         {
             try
@@ -43,6 +88,44 @@ namespace ReversePhoneLookup.Api.Services
                     return true;
             }
             return false;
+        }
+
+        public string ValidatePhoneNumber(string phone)
+        {
+            var formattedPhoneNumber = TryFormatPhoneNumber(phone);
+            
+            if (!IsPhoneNumber(formattedPhoneNumber))
+                throw new ApiException(StatusCode.InvalidPhoneNumber);
+
+            return formattedPhoneNumber;
+        }
+
+        private async Task<Contact> GetContactModel(
+            ContactViewModelIn contact, 
+            CancellationToken cancellationToken)
+        {
+            var contactModel = new Contact()
+            {
+                Name = contact.Name,
+            };
+
+            if (contact.Phone != null)
+            {
+                var formattedNumber = ValidatePhoneNumber(contact.Phone.Value);
+
+                // Find out if the specified phone already exists and assign it.
+                // Otherwise - create a new phone model.
+                contactModel.Phone = (await repository
+                    .GetPhoneDataAsync(formattedNumber, cancellationToken))
+                    ??
+                    new Phone
+                    {
+                        Value = formattedNumber,
+                        OperatorId = contact.Phone.OperatorId
+                    };
+            }
+
+            return contactModel;
         }
     }
 }

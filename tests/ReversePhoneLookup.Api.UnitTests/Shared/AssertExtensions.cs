@@ -6,7 +6,7 @@ using ReversePhoneLookup.Models;
 using ReversePhoneLookup.Models.Exceptions;
 using Xunit;
 
-namespace ReversePhoneLookup.Api.UnitTests.Shared
+namespace ReversePhoneLookup.Models.UnitTests.Shared
 {
     public static class AssertExtensions
     {

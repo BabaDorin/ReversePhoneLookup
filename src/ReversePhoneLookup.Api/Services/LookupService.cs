@@ -11,7 +11,7 @@ using ReversePhoneLookup.Models.Exceptions;
 using ReversePhoneLookup.Models.Requests;
 using ReversePhoneLookup.Models.Responses;
 
-namespace ReversePhoneLookup.Api.Services
+namespace ReversePhoneLookup.Models.Services
 {
     public class LookupService : ILookupService
     {

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using ReversePhoneLookup.Abstract.Repositories;
+using ReversePhoneLookup.Models.Models.Entities;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using ReversePhoneLookup.Abstract.Repositories;
-using ReversePhoneLookup.Api.Models.Entities;
 
-namespace ReversePhoneLookup.Api.Repositories
+namespace ReversePhoneLookup.Models.Repositories
 {
     public class PhoneRepository : IPhoneRepository
     {
@@ -19,6 +16,22 @@ namespace ReversePhoneLookup.Api.Repositories
             this.context = context;
         }
 
+        public async Task<int> AddOperatorAsync(Operator @operator, CancellationToken cancellationToken)
+        {
+            var result = await context.Operators
+                .AddAsync(@operator, cancellationToken);
+
+            return result.Entity.Id;
+        }
+
+        public async Task<int> AddPhoneAsync(Phone phone, CancellationToken cancellationToken)
+        {
+            var result = await context.Phones
+                .AddAsync(phone, cancellationToken);
+
+            return result.Entity.Id;
+        }
+
         public async Task<Phone> GetPhoneDataAsync(string phone, CancellationToken cancellationToken)
         {
             return await context.Phones
@@ -27,5 +40,6 @@ namespace ReversePhoneLookup.Api.Repositories
                 .Include(x => x.Contacts)
                 .FirstOrDefaultAsync(cancellationToken);
         }
+
     }
 }

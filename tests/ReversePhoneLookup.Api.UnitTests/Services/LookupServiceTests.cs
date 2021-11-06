@@ -7,14 +7,14 @@ using AutoFixture.Xunit2;
 using Moq;
 using ReversePhoneLookup.Abstract.Repositories;
 using ReversePhoneLookup.Abstract.Services;
-using ReversePhoneLookup.Api.Models.Entities;
-using ReversePhoneLookup.Api.Services;
-using ReversePhoneLookup.Api.UnitTests.Shared;
+using ReversePhoneLookup.Models.Models.Entities;
+using ReversePhoneLookup.Models.Services;
+using ReversePhoneLookup.Models.UnitTests.Shared;
 using ReversePhoneLookup.Models;
 using ReversePhoneLookup.Models.Requests;
 using Xunit;
 
-namespace ReversePhoneLookup.Api.UnitTests.Services
+namespace ReversePhoneLookup.Models.UnitTests.Services
 {
     public class LookupServiceTests
     {

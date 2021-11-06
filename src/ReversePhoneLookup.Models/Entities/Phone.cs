@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace ReversePhoneLookup.Api.Models.Entities
+namespace ReversePhoneLookup.Models.Models.Entities
 {
     public partial class Phone
     {

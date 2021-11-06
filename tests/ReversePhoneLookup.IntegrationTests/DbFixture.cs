@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using ReversePhoneLookup.Api;
+using ReversePhoneLookup.Models;
 
 namespace ReversePhoneLookup.IntegrationTests
 {
@@ -14,6 +14,7 @@ namespace ReversePhoneLookup.IntegrationTests
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.Test.json")
                 .Build();
+
             var dbContextOptions = new DbContextOptionsBuilder<PhoneLookupContext>()
                 .UseNpgsql(config.GetConnectionString("Default"))
                 .Options;

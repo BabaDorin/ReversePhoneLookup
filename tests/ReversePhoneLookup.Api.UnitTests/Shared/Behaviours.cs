@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 
-namespace ReversePhoneLookup.Api.UnitTests.Shared
+namespace ReversePhoneLookup.Models.UnitTests.Shared
 {
     public static class Behaviours
     {

@@ -6,7 +6,7 @@ using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
 
-namespace ReversePhoneLookup.Api.UnitTests.Shared
+namespace ReversePhoneLookup.Models.UnitTests.Shared
 {
     public class AutoMoqDataAttribute : AutoDataAttribute
     {

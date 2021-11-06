@@ -1,11 +1,11 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using ReversePhoneLookup.Api.Models.Entities;
+using ReversePhoneLookup.Models.Models.Entities;
 
 #nullable disable
 
-namespace ReversePhoneLookup.Api
+namespace ReversePhoneLookup.Models
 {
     public partial class PhoneLookupContext : DbContext
     {
@@ -24,8 +24,6 @@ namespace ReversePhoneLookup.Api
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Relational:Collation", "Russian_Russia.1251");
-
             modelBuilder.Entity<Contact>(entity =>
             {
                 entity.ToTable("contact");

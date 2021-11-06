@@ -8,6 +8,7 @@ namespace ReversePhoneLookup.Models
     {
         RequestError = 1,
         ServerError = 2,
+        ValidationError = 3,
         InvalidPhoneNumber = 10,
         NoDataFound = 11
     }

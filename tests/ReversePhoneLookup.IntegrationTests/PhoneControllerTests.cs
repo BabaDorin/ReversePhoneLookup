@@ -1,14 +1,19 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using ReversePhoneLookup.Models.Models.Entities;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using ReversePhoneLookup.Api.Models.Entities;
 using Xunit;
 
 namespace ReversePhoneLookup.IntegrationTests
 {
+    /// <summary>
+    /// TODO: Add the functionality of inserting records to datase.
+    /// TODO: Expose Endpoint
+    /// TODO: Write Unit Tests
+    /// TODO: Write Integration tests
+    /// </summary>
+
     public class PhoneControllerTests : IClassFixture<CustomWebApplicationFactory<StartupSUT>>
     {
         private readonly HttpClient client;

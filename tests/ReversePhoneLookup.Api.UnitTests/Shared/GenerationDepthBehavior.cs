@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using AutoFixture.Kernel;
 
-namespace ReversePhoneLookup.Api.UnitTests.Shared
+namespace ReversePhoneLookup.Models.UnitTests.Shared
 {
     public class GenerationDepthBehavior : ISpecimenBuilderTransformation
     {

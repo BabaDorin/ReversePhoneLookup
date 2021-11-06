@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AutoFixture.Xunit2;
 
-namespace ReversePhoneLookup.Api.UnitTests.Shared
+namespace ReversePhoneLookup.Models.UnitTests.Shared
 {
     public class InlineAutoMoqDataAttribute : InlineAutoDataAttribute
     {

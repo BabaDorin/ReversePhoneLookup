@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ReversePhoneLookup.Api.Services;
-using ReversePhoneLookup.Api.UnitTests.Shared;
+using ReversePhoneLookup.Models.Services;
+using ReversePhoneLookup.Models.UnitTests.Shared;
 using Xunit;
 
-namespace ReversePhoneLookup.Api.UnitTests.Services
+namespace ReversePhoneLookup.Models.UnitTests.Services
 {
     public class PhoneServiceTests
     {
