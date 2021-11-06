@@ -41,5 +41,19 @@ namespace ReversePhoneLookup.Models.Repositories
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
+        public async Task<Operator> GetOperatorAsync(int id, CancellationToken cancellationToken)
+        {
+            return await context.Operators
+                .FirstOrDefaultAsync(o => o.Id == id);
+        }
+
+        public async Task<Operator> GetOperatorAsync(string mcc, string mnc, string name, CancellationToken cancellationToken)
+        {
+            return await context.Operators
+                .FirstOrDefaultAsync(o => 
+                    o.Mcc == mcc 
+                    && o.Mnc == mnc
+                    && o.Name == name);
+        }
     }
 }

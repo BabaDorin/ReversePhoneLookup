@@ -1,4 +1,5 @@
-﻿using ReversePhoneLookup.Abstract.Repositories;
+﻿using Microsoft.Extensions.Caching.Memory;
+using ReversePhoneLookup.Abstract.Repositories;
 using ReversePhoneLookup.Abstract.Services;
 using ReversePhoneLookup.Models.Exceptions;
 using ReversePhoneLookup.Models.Models.Entities;
@@ -20,6 +21,16 @@ namespace ReversePhoneLookup.Models.Services
         
         public async Task AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken)
         {
+            if((await repository
+                .GetOperatorAsync(
+                @operator.Mcc, 
+                @operator.Mnc, 
+                @operator.Name, 
+                cancellationToken)) != null)
+            {
+                throw new ApiException(StatusCode.ValidationError);
+            }
+
             var operatorModel = new Operator()
             {
                 Mcc = @operator.Mcc,
@@ -32,13 +43,20 @@ namespace ReversePhoneLookup.Models.Services
 
         public async Task AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken)
         {
+            string formattedPhoneNumber = ValidatePhoneNumber(phone.Value);
+
+            if ((await repository.GetPhoneDataAsync(formattedPhoneNumber, cancellationToken)) != null)
+            {
+                throw new ApiException(StatusCode.ValidationError);
+            }
+
             var phoneModel = new Phone()
             {
-                Value = ValidatePhoneNumber(phone.Value),
+                Value = formattedPhoneNumber,
                 OperatorId = phone.OperatorId,
             };
 
-            if (phone.Contacts.Any())
+            if (phone.Contacts != null)
             {
                 foreach(var contact in phone.Contacts)
                 {
