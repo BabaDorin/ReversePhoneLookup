@@ -18,7 +18,7 @@ namespace ReversePhoneLookup.Api.Services
             this.repository = repository;
         }
 
-        public async Task AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken)
+        public async Task<int> AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken)
         {
             if ((await repository
                 .GetOperatorAsync(
@@ -38,6 +38,8 @@ namespace ReversePhoneLookup.Api.Services
             };
 
             await repository.AddOperatorAsync(operatorModel, cancellationToken);
+
+            return operatorModel.Id;
         }
     }
 }

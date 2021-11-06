@@ -6,7 +6,7 @@ namespace ReversePhoneLookup.Abstract.Services
 {
     public interface IPhoneService
     {
-        Task AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken);
+        Task<int> AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken);
 
         string TryFormatPhoneNumber(string phone);
         

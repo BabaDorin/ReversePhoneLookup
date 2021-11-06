@@ -1,19 +1,17 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ReversePhoneLookup.Models.Models.Entities;
+using ReversePhoneLookup.Models.ViewModels;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace ReversePhoneLookup.IntegrationTests
 {
-    /// <summary>
-    /// DONE: Add the functionality of inserting records to datase.
-    /// TODO: Expose Endpoint
-    /// TODO: Write Unit Tests
-    /// TODO: Write Integration tests
-    /// </summary>
-
+    [Collection("DbFixture user")]
     public class PhoneControllerTests : IClassFixture<CustomWebApplicationFactory<StartupSUT>>
     {
         private readonly HttpClient client;
@@ -54,6 +52,49 @@ namespace ReversePhoneLookup.IntegrationTests
                 JToken json = JToken.Parse(jsonResponse);
 
                 Assert.Equal("+37367123456", json["phone"]);
+            }
+        }
+
+        [Fact]
+        public async Task AddPhone_ValidData_ShouldReturn201()
+        {
+            using (var fixture = new DbFixture())
+            {
+                fixture.DbContext.Operators.Add(new Operator()
+                {
+                    Id = 1,
+                    Mcc = "123",
+                    Mnc = "99",
+                    Name = "Test"
+                });
+
+                await fixture.DbContext.SaveChangesAsync();
+
+                var phone = new PhoneViewModelIn()
+                {
+                    Value = "+37367123456",
+                    OperatorId = 1,
+                    Contacts = new List<ContactViewModelIn>()
+                {
+                    new ContactViewModelIn()
+                    {
+                        Name = "New Contact",
+                        Phone = new PhoneViewModelIn()
+                        {
+                            Value = "+37367123456",
+                            OperatorId = 1
+                        }
+                    }
+                }
+                };
+
+                var json = JsonConvert.SerializeObject(phone);
+                var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+                string url = "/phones";
+                var response = await client.PostAsync(url, data);
+
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             }
         }
     }

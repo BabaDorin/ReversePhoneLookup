@@ -19,7 +19,7 @@ namespace ReversePhoneLookup.Models.Services
             this.repository = repository;
         }
 
-        public async Task AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken)
+        public async Task<int> AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken)
         {
             string formattedPhoneNumber = ValidatePhoneNumber(phone.Value);
 
@@ -44,6 +44,8 @@ namespace ReversePhoneLookup.Models.Services
             }
 
             await repository.AddPhoneAsync(phoneModel, cancellationToken);
+
+            return phoneModel.Id;
         }
         
         public string TryFormatPhoneNumber(string phone)
