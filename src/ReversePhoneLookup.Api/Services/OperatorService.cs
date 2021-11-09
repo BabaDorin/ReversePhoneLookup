@@ -3,7 +3,8 @@ using ReversePhoneLookup.Abstract.Services;
 using ReversePhoneLookup.Models;
 using ReversePhoneLookup.Models.Exceptions;
 using ReversePhoneLookup.Models.Models.Entities;
-using ReversePhoneLookup.Models.ViewModels;
+using ReversePhoneLookup.Models.Requests;
+using ReversePhoneLookup.Models.Responses;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,35 +12,39 @@ namespace ReversePhoneLookup.Api.Services
 {
     public class OperatorService : IOperatorService
     {
-        private readonly IPhoneRepository repository;
+        private readonly IOperatorRepository repository;
 
-        public OperatorService(IPhoneRepository repository)
+        public OperatorService(IOperatorRepository repository)
         {
             this.repository = repository;
         }
 
-        public async Task<int> AddOperatorAsync(OperatorViewModelIn @operator, CancellationToken cancellationToken)
+        public async Task<APIResponse> AddOperatorAsync(
+            CreateOperatorRequest request, 
+            CancellationToken cancellationToken)
         {
-            if ((await repository
+            var existentOperator = await repository
                 .GetOperatorAsync(
-                @operator.Mcc,
-                @operator.Mnc,
-                @operator.Name,
-                cancellationToken)) != null)
+                    request.Mcc,
+                    request.Mnc,
+                    request.Name,
+                    cancellationToken);
+
+            if (existentOperator != null)
             {
-                throw new ApiException(StatusCode.ValidationError);
+                throw new ApiException(StatusCode.Conflict);
             }
 
             var operatorModel = new Operator()
             {
-                Mcc = @operator.Mcc,
-                Mnc = @operator.Mnc,
-                Name = @operator.Name,
+                Mcc = request.Mcc,
+                Mnc = request.Mnc,
+                Name = request.Name,
             };
 
             await repository.AddOperatorAsync(operatorModel, cancellationToken);
 
-            return operatorModel.Id;
+            return new APIResponse(StatusCode.Created, operatorModel.Id);
         }
     }
 }

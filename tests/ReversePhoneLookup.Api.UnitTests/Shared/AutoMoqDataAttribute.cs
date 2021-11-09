@@ -5,6 +5,7 @@ using System.Text;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
+using ReversePhoneLookup.Api.UnitTests.Shared;
 
 namespace ReversePhoneLookup.Models.UnitTests.Shared
 {
@@ -44,6 +45,7 @@ namespace ReversePhoneLookup.Models.UnitTests.Shared
         {
             var fixture = new Fixture();
             fixture.Customize(new AutoMoqCustomization());
+            fixture.Customize(new PhoneValidatorCustomization());
             fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                     .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior());

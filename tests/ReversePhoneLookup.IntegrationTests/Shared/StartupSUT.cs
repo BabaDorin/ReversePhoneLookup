@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using ReversePhoneLookup.Web;
 
-namespace ReversePhoneLookup.IntegrationTests
+namespace ReversePhoneLookup.IntegrationTests.Shared
 {
     public class StartupSUT : Startup
     {

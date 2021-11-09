@@ -1,4 +1,5 @@
-﻿using ReversePhoneLookup.Models.ViewModels;
+﻿using ReversePhoneLookup.Models.Requests;
+using ReversePhoneLookup.Models.Responses;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,12 +7,6 @@ namespace ReversePhoneLookup.Abstract.Services
 {
     public interface IPhoneService
     {
-        Task<int> AddPhoneAsync(PhoneViewModelIn phone, CancellationToken cancellationToken);
-
-        string TryFormatPhoneNumber(string phone);
-        
-        bool IsPhoneNumber(string phone);
-
-        string ValidatePhoneNumber(string phone);
+        Task<APIResponse> AddOrUpdatePhoneAsync(UpsertPhoneRequest phone, CancellationToken cancellationToken);
     }
 }

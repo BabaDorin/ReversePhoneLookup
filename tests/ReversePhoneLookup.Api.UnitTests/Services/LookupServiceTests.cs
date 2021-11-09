@@ -21,19 +21,19 @@ namespace ReversePhoneLookup.Models.UnitTests.Services
         [Theory]
         [AutoMoqData]
         public async Task LookupAsync_TryFormatPhoneNumber_CalledOnce(
-            [Frozen] Mock<IPhoneService> phoneServiceMock,
+            [Frozen] Mock<IPhoneValidatorService> phoneValidatorMock,
             LookupRequest request,
             LookupService sut)
         {
             await Record.ExceptionAsync(() => sut.LookupAsync(request, CancellationToken.None));
 
-            phoneServiceMock.Verify(x => x.TryFormatPhoneNumber(request.Phone), Times.Once);
+            phoneValidatorMock.Verify(x => x.TryFormatPhoneNumber(request.Phone), Times.Once);
         }
 
         [Theory]
         [AutoMoqData]
         public async Task LookupAsync_InvalidPhone_ShouldThrowException(
-            [Frozen] Mock<IPhoneService> phoneServiceMock,
+            [Frozen] Mock<IPhoneValidatorService> phoneServiceMock,
             LookupRequest request,
             LookupService sut)
         {
@@ -46,11 +46,12 @@ namespace ReversePhoneLookup.Models.UnitTests.Services
         [AutoMoqData]
         public async Task LookupAsync_NoPhoneData_ShouldThrowException(
             [Frozen] Mock<IPhoneService> phoneServiceMock,
+            [Frozen] Mock<IPhoneValidatorService> phoneValidatorMock,
             [Frozen] Mock<IPhoneRepository> phoneRepositoryMock,
             LookupRequest request,
             LookupService sut)
         {
-            phoneServiceMock.Setup(x => x.IsPhoneNumber(It.IsAny<string>())).Returns(true);
+            phoneValidatorMock.Setup(x => x.IsPhoneNumber(It.IsAny<string>())).Returns(true);
             phoneRepositoryMock.Setup(x => x.GetPhoneDataAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((Phone)null);
 
             await AssertExtensions.ThrowsWithCodeAsync(() => sut.LookupAsync(request, CancellationToken.None), StatusCode.NoDataFound);
@@ -59,15 +60,15 @@ namespace ReversePhoneLookup.Models.UnitTests.Services
         [Theory]
         [AutoMoqData(typeof(Behaviours), nameof(Behaviours.GenerationDepthBehaviorDepth2))]
         public async Task LookupAsync_DataFound_ShouldReturnValidResponse(
-            [Frozen] Mock<IPhoneService> phoneServiceMock,
+            [Frozen] Mock<IPhoneValidatorService> phoneValidatorMock,
             [Frozen] Mock<IPhoneRepository> phoneRepositoryMock,
             string formattedPhone,
             Phone phone,
             LookupRequest request,
             LookupService sut)
         {
-            phoneServiceMock.Setup(x => x.TryFormatPhoneNumber(It.IsAny<string>())).Returns(formattedPhone);
-            phoneServiceMock.Setup(x => x.IsPhoneNumber(It.IsAny<string>())).Returns(true);
+            phoneValidatorMock.Setup(x => x.TryFormatPhoneNumber(It.IsAny<string>())).Returns(formattedPhone);
+            phoneValidatorMock.Setup(x => x.IsPhoneNumber(It.IsAny<string>())).Returns(true);
             phoneRepositoryMock.Setup(x => x.GetPhoneDataAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(phone);
 
             var result = await sut.LookupAsync(request, CancellationToken.None);

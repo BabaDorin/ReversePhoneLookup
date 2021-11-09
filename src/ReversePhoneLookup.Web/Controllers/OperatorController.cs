@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ReversePhoneLookup.Abstract.Services;
-using ReversePhoneLookup.Models.ViewModels;
+using ReversePhoneLookup.Models.Requests;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +19,14 @@ namespace ReversePhoneLookup.Web.Controllers
 
         [HttpPost("/operators")]
         public async Task<IActionResult> AddOperator(
-            [FromBody] OperatorViewModelIn @operator,
+            [FromBody] CreateOperatorRequest request,
             CancellationToken cancellationToken)
         {
-            var id = await operatorService.AddOperatorAsync(@operator, cancellationToken);
+            var response = await operatorService.AddOperatorAsync(request, cancellationToken);
 
-            // RequestPath/id is not implemented yet, but still :) I want to return 201
-            return Created(new Uri($"{Request.Path}/{id}", UriKind.Relative), id);
+            return Created(
+                new Uri($"{Request.Path}/{response.Data}", UriKind.Relative), 
+                response.Data);
         }
     }
 }

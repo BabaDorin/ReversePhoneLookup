@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture.Xunit2;
-using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using ReversePhoneLookup.Abstract.Repositories;
 using ReversePhoneLookup.Abstract.Services;
 using ReversePhoneLookup.Models.Exceptions;
 using ReversePhoneLookup.Models.Models.Entities;
+using ReversePhoneLookup.Models.Requests;
 using ReversePhoneLookup.Models.Services;
 using ReversePhoneLookup.Models.UnitTests.Shared;
-using ReversePhoneLookup.Models.ViewModels;
 using Xunit;
 
 namespace ReversePhoneLookup.Models.UnitTests.Services
@@ -21,204 +18,166 @@ namespace ReversePhoneLookup.Models.UnitTests.Services
     public class PhoneServiceTests
     {
         [Theory]
-        [InlineAutoMoqData("+37360123456")]
-        [InlineAutoMoqData("+37361123456")]
-        [InlineAutoMoqData("+37362123456")]
-        [InlineAutoMoqData("+37367123456")]
-        [InlineAutoMoqData("+37368123456")]
-        [InlineAutoMoqData("+37369123456")]
-        [InlineAutoMoqData("+37376712345")]
-        [InlineAutoMoqData("+37377412345")]
-        [InlineAutoMoqData("+37377512345")]
-        [InlineAutoMoqData("+37377712345")]
-        [InlineAutoMoqData("+37377812345")]
-        [InlineAutoMoqData("+37377912345")]
-        [InlineAutoMoqData("+37378123456")]
-        [InlineAutoMoqData("+37379123456")]
-        public void IsPhoneNumber_ReturnsTrue_OnValidPhone(string phone, PhoneService sut)
-        {
-            var result = sut.IsPhoneNumber(phone);
-
-            Assert.True(result);
-        }
-
-        [Theory]
-        [InlineAutoMoqData("69123456", "+37369123456")]
-        [InlineAutoMoqData("069123456", "+37369123456")]
-        [InlineAutoMoqData("0069123456", "+37369123456")]
-        [InlineAutoMoqData("37369123456", "+37369123456")]
-        [InlineAutoMoqData("373069123456", "+37369123456")]
-        [InlineAutoMoqData("+37369123456", "+37369123456")]
-        [InlineAutoMoqData("+373069123456", "+37369123456")]
-        public void TryFormatPhoneNumber_ShouldFormatToInternationalFormat(string source, string expected, PhoneService sut)
-        {
-            var result = sut.TryFormatPhoneNumber(source);
-
-            Assert.Equal(expected, result);
-        }
-
-        [Theory]
-        [InlineAutoMoqData("invalid phonenumber")]
-        [InlineAutoMoqData("000")]
-        public void ValidatePhoneNumber_ShouldThrowApiExceptionIfInvalid(
-            string phone,
-            PhoneService sut)
+        [AutoMoqData(typeof(Behaviours), nameof(Behaviours.GenerationDepthBehaviorDepth2))]
+        public async Task AddOrUpdatePhoneAsync_ShouldCallValidatePhoneNumber(
+            [Frozen] Mock<IPhoneValidatorService> phoneValidatorMock,
+            PhoneService sut,
+            UpsertPhoneRequest request,
+            CancellationToken cancellationToken)
         {
             // Act
-            var exception = Record.Exception(() => sut.ValidatePhoneNumber(phone));
+            await Record.ExceptionAsync(() => sut.AddOrUpdatePhoneAsync(request, cancellationToken));
 
             // Assert
-            Assert.True(exception is ApiException);
-            Assert.Equal(StatusCode.InvalidPhoneNumber, (exception as ApiException).Code);
-        }
-
-        [Theory]
-        [InlineAutoMoqData("69123456", "+37369123456")]
-        [InlineAutoMoqData("069123456", "+37369123456")]
-        public void ValidatePhoneNumber_ShouldFormatToInternationFormat(
-            string source,
-            string expected,
-            PhoneService sut)
-        {
-            // Act
-            var actual = sut.ValidatePhoneNumber(source);
-
-            // Assert
-            Assert.Equal(expected, actual);
+            phoneValidatorMock.Verify(m => m.ValidatePhoneNumber(request.Value));
         }
 
         [Theory]
         [AutoMoqData]
-        public async Task AddPhoneAsync_ShouldCallRepositoryAddAsyncOnce(
-            [Frozen] Mock<IPhoneRepository> repo,
+        public async Task AddOrUpdatePhoneAsync_NewPhone_ShouldAddPhone(
+            [Frozen] Mock<IPhoneRepository> phoneRepositoryMock,
+            [Frozen] Mock<IOperatorRepository> operatorRepositoryMock,
             PhoneService sut,
             CancellationToken cancellationToken)
         {
             // Arrange
-            PhoneViewModelIn phoneVm = new PhoneViewModelIn()
+            var request = new UpsertPhoneRequest()
             {
                 Value = "+37369123456",
                 OperatorId = 1,
+                Contact = new CreateContactRequest() { Name = "New Contact" }
             };
 
+            operatorRepositoryMock.Setup(r => r.GetOperatorAsync(request.OperatorId, cancellationToken))
+                 .ReturnsAsync(new Operator());
+
             // Act
-            await sut.AddPhoneAsync(phoneVm, cancellationToken);
+            await sut.AddOrUpdatePhoneAsync(request, cancellationToken);
 
             // Assert
-            repo.Verify(repo => repo.AddPhoneAsync(
-                It.Is<Phone>(p => p.Value == phoneVm.Value && p.OperatorId == phoneVm.OperatorId),
-                cancellationToken
-                ), Times.Once);
+            phoneRepositoryMock.Verify(repo => repo
+                .AddPhoneAsync(
+                    It.Is<Phone>(p => 
+                        p.Value == request.Value 
+                        && p.OperatorId == request.OperatorId
+                        && p.Contacts.First().Name == request.Contact.Name),
+                    cancellationToken),
+                Times.Once);
         }
 
         [Theory]
         [AutoMoqData]
-        public async Task AddPhoneAsync_ShouldReuseExistingPhoneEntitiesForContacts(
-            [Frozen] Mock<IPhoneRepository> repo,
+        public async Task AddOrUpdatePhoneAsync_ExistentPhone_NewContact_ShouldAddContactToPhone(
+            [Frozen] Mock<IPhoneRepository> phoneRepositoryMock,
             PhoneService sut,
             CancellationToken cancellationToken)
         {
             // Arrange
-            var existingPhone = new Phone()
+            var existentPhone = new Phone()
             {
                 Id = 420,
                 OperatorId = 1,
-                Value = "+37369111111"
+                Value = "+37369123456"
             };
 
-            repo.Setup(r => r.GetPhoneDataAsync(existingPhone.Value, cancellationToken))
-                .Returns(Task.FromResult(existingPhone));
-
-            PhoneViewModelIn phoneVm = new PhoneViewModelIn()
+            var request = new UpsertPhoneRequest()
             {
-                Value = "+37369123456",
-                OperatorId = 1,
-                Contacts = new List<ContactViewModelIn>()
-                {
-                    new ContactViewModelIn()
-                    {
-                        Name = "New Contact",
-                        Phone = new PhoneViewModelIn()
-                        {
-                            Value = existingPhone.Value,
-                        }
-                    }
-                }
+                Value = existentPhone.Value,
+                OperatorId = (int)existentPhone.OperatorId,
+                Contact = new CreateContactRequest { Name = "New Contact" }
             };
-                
+
+            phoneRepositoryMock.Setup(r => r.GetPhoneDataAsync(request.Value, cancellationToken))
+                .ReturnsAsync(existentPhone);
+            
             // Act
-            await sut.AddPhoneAsync(phoneVm, cancellationToken);
+            await sut.AddOrUpdatePhoneAsync(request, cancellationToken);
 
             // Assert
-            repo.Verify(repo => repo.AddPhoneAsync(
-                It.Is<Phone>(p => p.Contacts.First().Phone.Id == existingPhone.Id),
-                cancellationToken
-                ), Times.Once);
+            phoneRepositoryMock.Verify(repo => repo
+                .UpdatePhoneAsync(
+                    It.Is<Phone>(p => 
+                        p.Value == request.Value
+                        && p.Contacts.First().Name == request.Contact.Name),
+                    cancellationToken), 
+                Times.Once);
         }
 
         [Theory]
         [AutoMoqData]
-        public async Task AddPhoneAsync_AssignContactsWithNewPhonesToPhone(
-            [Frozen] Mock<IPhoneRepository> repo,
+        public async Task AddOrUpdatePhoneAsync_ExistentPhone_ExistentContact_ShouldThrowApiException(
+            [Frozen] Mock<IPhoneRepository> phoneRepositoryMock,
             PhoneService sut,
             CancellationToken cancellationToken)
         {
             // Arrange
-            var newContactPhone = new PhoneViewModelIn()
+            var existentContact = new Contact
             {
-                OperatorId = 1,
-                Value = "+37369123456"
+                Name = "Existent contact"
             };
 
-            PhoneViewModelIn phoneVm = new PhoneViewModelIn()
+            var existentPhone = new Phone()
             {
                 Value = "+37369123456",
                 OperatorId = 1,
-                Contacts = new List<ContactViewModelIn>()
-                {
-                    new ContactViewModelIn()
-                    {
-                        Name = "New Contact",
-                        Phone = newContactPhone
-                    }
-                }
+                Contacts = new List<Contact>() { existentContact }
             };
 
-            // Act
-            await sut.AddPhoneAsync(phoneVm, cancellationToken);
-
-            // Assert
-            repo.Verify(repo => repo.AddPhoneAsync(
-                It.Is<Phone>(
-                    p => p.Contacts.First().Phone.OperatorId == newContactPhone.OperatorId
-                    && p.Contacts.First().Phone.Value == newContactPhone.Value),
-                cancellationToken
-                ), Times.Once);
-        }
-
-        [Theory]
-        [AutoMoqData]
-        public async Task AddPhoneAsync_ShouldThrowApiExceptionIfAlreadyExists(
-            [Frozen] Mock<IPhoneRepository> repo,
-            PhoneService sut,
-            CancellationToken cancellationToken)
-        {
-            // Arrange
-            var phoneVm = new PhoneViewModelIn()
+            var request = new UpsertPhoneRequest
             {
-                Value = "+37369123456"
+                Value = existentPhone.Value,
+                OperatorId = (int)existentPhone.OperatorId,
+                Contact = new CreateContactRequest { Name = existentContact.Name }
             };
 
-            repo.Setup(r => r.GetPhoneDataAsync(phoneVm.Value, cancellationToken))
-                .Returns(Task.FromResult(new Phone()));
+            phoneRepositoryMock.Setup(r => r.GetPhoneDataAsync(request.Value, cancellationToken))
+                .Returns(Task.FromResult(existentPhone));
 
             // Act
-            var exception = await Record.ExceptionAsync(async ()
-                => await sut.AddPhoneAsync(phoneVm, cancellationToken));
+            var exception = await Record.ExceptionAsync(() => 
+                sut.AddOrUpdatePhoneAsync(request, cancellationToken));
 
             // Assert
             Assert.True(exception is ApiException);
-            Assert.Equal(StatusCode.ValidationError, (exception as ApiException).Code);
+            Assert.Equal(StatusCode.Conflict, (exception as ApiException).Code);
+
+            phoneRepositoryMock.Verify(r => r
+                .AddPhoneAsync(
+                    It.IsAny<Phone>(),
+                    cancellationToken),
+                Times.Never);
+
+            phoneRepositoryMock.Verify(r => r
+                .UpdatePhoneAsync(
+                    It.IsAny<Phone>(),
+                    cancellationToken),
+                Times.Never);
+        }
+
+        [Theory]
+        [AutoMoqData]
+        public async Task AddOrUpdatePhoneAsync_InvalidOperatorId_ShouldThrowApiException(
+            [Frozen] Mock<IOperatorRepository> operatorRepositoryMock,
+            PhoneService sut,
+            CancellationToken cancellationToken)
+        {
+            // Arrange
+            var request = new UpsertPhoneRequest
+            {
+                Value = "+37369123456",
+                OperatorId = 1, // does not exist
+            };
+
+            operatorRepositoryMock.Setup(r => r.GetOperatorAsync(request.OperatorId, cancellationToken))
+                 .ReturnsAsync((Operator)null);
+
+            // Act
+            var exception = await Record.ExceptionAsync(() => 
+                sut.AddOrUpdatePhoneAsync(request, cancellationToken));
+
+            // Assert
+            Assert.True(exception is ApiException);
+            Assert.Equal(StatusCode.NoDataFound, (exception as ApiException).Code);
         }
     }
 }

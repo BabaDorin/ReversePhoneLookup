@@ -12,5 +12,9 @@ namespace ReversePhoneLookup.Models.UnitTests.Shared
         {
             fixture.Behaviors.Add(new GenerationDepthBehavior(3));
         }
+        public static void GenerationDepthBehaviorDepth4(IFixture fixture)
+        {
+            
+        }
     }
 }

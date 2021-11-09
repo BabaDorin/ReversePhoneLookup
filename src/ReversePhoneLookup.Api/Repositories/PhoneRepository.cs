@@ -16,18 +16,10 @@ namespace ReversePhoneLookup.Models.Repositories
             this.context = context;
         }
 
-        public async Task<int> AddOperatorAsync(Operator @operator, CancellationToken cancellationToken)
-        {
-            var result = await context.Operators
-                .AddAsync(@operator, cancellationToken);
-
-            return result.Entity.Id;
-        }
-
         public async Task<int> AddPhoneAsync(Phone phone, CancellationToken cancellationToken)
         {
-            var result = await context.Phones
-                .AddAsync(phone, cancellationToken);
+            var result = await context.Phones.AddAsync(phone, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             return result.Entity.Id;
         }
@@ -41,19 +33,10 @@ namespace ReversePhoneLookup.Models.Repositories
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<Operator> GetOperatorAsync(int id, CancellationToken cancellationToken)
+        public async Task UpdatePhoneAsync(Phone phone, CancellationToken cancellationToken)
         {
-            return await context.Operators
-                .FirstOrDefaultAsync(o => o.Id == id);
-        }
-
-        public async Task<Operator> GetOperatorAsync(string mcc, string mnc, string name, CancellationToken cancellationToken)
-        {
-            return await context.Operators
-                .FirstOrDefaultAsync(o => 
-                    o.Mcc == mcc 
-                    && o.Mnc == mnc
-                    && o.Name == name);
+            context.Update(phone);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 }

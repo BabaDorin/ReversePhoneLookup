@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using ReversePhoneLookup.Models;
 using ReversePhoneLookup.Models.Exceptions;
 using ReversePhoneLookup.Models.Responses;
+using System.Collections.Generic;
+using System.Net;
 
 namespace ReversePhoneLookup.Web.Filters
 {
@@ -17,7 +14,8 @@ namespace ReversePhoneLookup.Web.Filters
         {
             { StatusCode.ServerError, "Internal error" },
             { StatusCode.InvalidPhoneNumber, "Invalid phone number" },
-            { StatusCode.NoDataFound, "No data found" }
+            { StatusCode.NoDataFound, "No data found" },
+            { StatusCode.Conflict, "Resource already exists" },
         };
 
         public void OnException(ExceptionContext context)
@@ -32,8 +30,19 @@ namespace ReversePhoneLookup.Web.Filters
 
                 context.Result = new ObjectResult(response)
                 {
-                    StatusCode = (int)(apiException.Code == StatusCode.ServerError ? HttpStatusCode.InternalServerError : HttpStatusCode.BadRequest)
+                    StatusCode = (int?)GetHttpStatusCode(response.Code)
                 };
+            }
+        }
+
+        private HttpStatusCode GetHttpStatusCode(StatusCode statusCode)
+        {
+            switch (statusCode)
+            {
+                case StatusCode.ServerError: return HttpStatusCode.InternalServerError;
+                case StatusCode.NoDataFound: return HttpStatusCode.NotFound;
+                case StatusCode.Conflict: return HttpStatusCode.Conflict;
+                default: return HttpStatusCode.BadRequest;
             }
         }
     }

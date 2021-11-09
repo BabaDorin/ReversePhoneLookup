@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ReversePhoneLookup.Models;
+using System;
 
-namespace ReversePhoneLookup.IntegrationTests
+namespace ReversePhoneLookup.IntegrationTests.Shared
 {
     public class DbFixture : IDisposable
     {

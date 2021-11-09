@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ReversePhoneLookup.Models.Responses
+﻿namespace ReversePhoneLookup.Models.Responses
 {
     public class ErrorResponse
     {

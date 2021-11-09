@@ -17,17 +17,22 @@ namespace ReversePhoneLookup.Models.Services
     {
         private readonly IPhoneService phoneService;
         private readonly IPhoneRepository phoneRepository;
+        private readonly IPhoneValidatorService phoneValidator;
 
-        public LookupService(IPhoneService phoneService, IPhoneRepository phoneRepository)
+        public LookupService(
+            IPhoneService phoneService, 
+            IPhoneRepository phoneRepository,
+            IPhoneValidatorService phoneValidator)
         {
             this.phoneService = phoneService;
             this.phoneRepository = phoneRepository;
+            this.phoneValidator = phoneValidator;
         }
 
         public async Task<LookupResponse> LookupAsync(LookupRequest request, CancellationToken cancellationToken)
         {
-            string phone = phoneService.TryFormatPhoneNumber(request.Phone);
-            if (!phoneService.IsPhoneNumber(phone))
+            string phone = phoneValidator.TryFormatPhoneNumber(request.Phone);
+            if (!phoneValidator.IsPhoneNumber(phone))
                 throw new ApiException(StatusCode.InvalidPhoneNumber);
 
             var data = await phoneRepository.GetPhoneDataAsync(phone, cancellationToken);
